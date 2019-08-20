@@ -1,4 +1,4 @@
-package org.finra.schemamatch.schema_match_api;
+package org.finra.schemamatch.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
