@@ -1,4 +1,4 @@
-package org.finra.schemamatch.data;
+package org.finra.schemamatch.database;
 
 public enum DatabaseEntityType {
 	COLUMN,

@@ -1,32 +1,21 @@
 package org.finra.schemamatch.data;
 
-import java.util.List;
+import org.finra.schemamatch.database.Association;
 
-public class Relationship {
+import java.io.Serializable;
 
-	public String name;
-	
-	public List<DatabaseEntity> entries;
-	
-	public Relationship() {
-		
-	}
+/**
+ * Database row to database row link.
+ */
+public class Relationship implements Serializable {
 
-	public List<DatabaseEntity> getEntries() {
-		return entries;
-	}
+	public String associationName;
 
-	public void setEntries(List<DatabaseEntity> entries) {
-		this.entries = entries;
-	}
+	public Association associationModel;
 
-	public String getName() {
-		return name;
-	}
+	private long startNodeId;
+	private long endNodeId;
 
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	
+	DatabaseRow startNode;
+	DatabaseRow endNode;
 }

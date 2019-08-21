@@ -9,14 +9,20 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
     <packaging>pom</packaging>
  
     <name>Schema Match</name>
+
+    <modules>
+        <module>schema_match_api</module>
+        <!--<module>schema_match_ui</module>-->
+
+    </modules>
  
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
  
     <dependencies>
-     
-       
+
+
          
     </dependencies>
 </project>
