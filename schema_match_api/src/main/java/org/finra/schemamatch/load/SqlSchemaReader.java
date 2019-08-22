@@ -25,9 +25,9 @@ public class SqlSchemaReader {
 
 	}
 
-	public DatabaseTree loadTablesForDatabase(DataSource dataSource, String label) throws MetaDataAccessException, SQLException {
+	public DatabaseTree loadTablesForDatabase(DataSource dataSource, String dbName) throws MetaDataAccessException, SQLException {
 
-		DatabaseTree tree = new DatabaseTree(label, DatabaseType.SQL, dataSource);
+		DatabaseTree tree = new DatabaseTree(dbName, DatabaseType.SQL, dataSource);
 
         ResultSet allTables = (ResultSet) JdbcUtils.extractDatabaseMetaData(
 				dataSource,
