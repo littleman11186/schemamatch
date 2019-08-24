@@ -2,5 +2,7 @@ package org.finra.schemamatch.database;
 
 public enum DatabaseEntityType {
 	COLUMN,
-	TABLE
+	TABLE,
+	FOREIGN_KEY,
+	OWNERSHIP
 }

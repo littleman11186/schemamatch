@@ -2,11 +2,13 @@ package org.finra.schemamatch.load;
 
 import com.clarkparsia.license.Person;
 import com.complexible.common.rdf.query.resultio.TextTableQueryResultWriter;
+import com.complexible.stardog.StardogException;
 import com.complexible.stardog.api.*;
 import com.complexible.stardog.api.admin.AdminConnection;
 import com.complexible.stardog.api.admin.AdminConnectionConfiguration;
-import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.*;
 import org.openrdf.query.resultio.QueryResultIO;
+import org.openrdf.query.resultio.UnsupportedQueryResultFormatException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -90,13 +92,48 @@ public class StarDogConnector {
 
     public TupleQueryResult doQuery() throws IOException {
         Connection connection = this.connectionPool.obtain();
-        // Query the database to get our list of Marvel superheroes
-        // and print the results to the console
-        //TODO update query to reflect our dataset
-        SelectQuery query = connection.select("PREFIX foaf:<http://xmlns.com/foaf/0.1/> select * { ?s rdf:type foaf:Person }");
-        TupleQueryResult tupleQueryResult = query.execute();
-        QueryResultIO.writeTuple(tupleQueryResult,
-                TextTableQueryResultWriter.FORMAT, System.out);
+        TupleQueryResult tupleQueryResult = null;
+        try {
+            // Query the database to get our list of Marvel superheroes
+            // and print the results to the console
+            //TODO update query to reflect our dataset
+            SelectQuery query = connection.select("PREFIX foaf:<http://xmlns.com/foaf/0.1/> select * { ?s rdf:type foaf:Person }");
+            tupleQueryResult = query.execute();
+            QueryResultIO.writeTuple(tupleQueryResult,
+                    TextTableQueryResultWriter.FORMAT, System.out);
+
+            while (tupleQueryResult.hasNext()) {
+                // Each result is represented by a BindingSet, which corresponds to a result row
+                BindingSet bindingSet = tupleQueryResult.next();
+
+                // Each BindingSet contains one or more Bindings
+                for (Binding binding : bindingSet) {
+                    // Each Binding contains the variable name and the value for this result row
+                    String name = binding.getName();
+                    org.openrdf.model.Value value = binding.getValue();
+
+                    System.out.println(name + " = " + value);
+                }
+
+                // Bindings can also be accessed explicitly by variable name
+                //Binding binding = bindingSet.getBinding("x");
+            }
+
+            // Once we are done with a particular result we need to close it
+            tupleQueryResult.close();
+        } catch (StardogException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TupleQueryResultHandlerException e) {
+            e.printStackTrace();
+        } catch (UnsupportedQueryResultFormatException e) {
+            e.printStackTrace();
+        } catch (QueryEvaluationException e) {
+            e.printStackTrace();
+        } finally {
+            connection.close();
+        }
 
         return tupleQueryResult;
     }

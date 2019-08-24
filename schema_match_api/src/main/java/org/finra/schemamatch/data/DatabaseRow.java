@@ -8,8 +8,6 @@ public class DatabaseRow {
 
     Map<String, Object> fields;
 
-    protected long originId;
+    protected String originId;
     DatabaseTable origin;
-
-    Object identifier;
 }

@@ -1,12 +1,13 @@
 package org.finra.schemamatch.database;
 
 import java.util.List;
-import java.util.Map;
 
-public class DatabaseTable extends DatabaseEntity {
+public class DatabaseTable extends DatabaseSchemaEntity {
 	protected List<DatabaseColumn> columns;
 
-	protected DatabaseColumn primaryKey;
+	protected List<Relationship> relationships;
+
+	protected List<DatabaseColumn> primaryKeys;
 	
 	public DatabaseTable(String label) {
 		super(label, DatabaseEntityType.TABLE);
@@ -20,14 +21,32 @@ public class DatabaseTable extends DatabaseEntity {
 		this.columns = columns;
 	}
 
+	public List<Relationship> getRelationships() {
+		return relationships;
+	}
+
+	public void setRelationships(List<Relationship> relationships) {
+		this.relationships = relationships;
+	}
+
+	public List<DatabaseColumn> getPrimaryKeys() {
+		return primaryKeys;
+	}
+
+	public void setPrimaryKeys(List<DatabaseColumn> primaryKeys) {
+		this.primaryKeys = primaryKeys;
+	}
+
 	@Override
 	public String toString() {
 		return "DatabaseTable{" +
 				"columns=" + columns +
-				", primaryKey=" + primaryKey +
+				", relationships=" + relationships +
+				", primaryKeys=" + primaryKeys +
 				", label='" + label + '\'' +
+				", name='" + name + '\'' +
 				", type=" + type +
-				", id=" + id +
+				", id='" + id + '\'' +
 				'}';
 	}
 }

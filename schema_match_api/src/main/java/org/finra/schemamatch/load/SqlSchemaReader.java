@@ -1,62 +1,61 @@
 package org.finra.schemamatch.load;
 
-import java.sql.*;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import com.sun.javaws.exceptions.InvalidArgumentException;
-import org.finra.schemamatch.database.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.DatabaseMetaDataCallback;
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.finra.schemamatch.database.Relationship;
+import org.finra.schemamatch.database.DatabaseColumn;
+import org.finra.schemamatch.database.DatabaseTable;
+import org.finra.schemamatch.database.DatabaseTree;
+import org.finra.schemamatch.error.DatabaseException;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.sql.*;
+import java.util.LinkedList;
+import java.util.List;
 
 @Service
 public class SqlSchemaReader {
 
-	
 	public SqlSchemaReader() {
-
 	}
 
-	public DatabaseTree loadTablesForDatabase(DataSource dataSource, String dbName) throws MetaDataAccessException, SQLException {
-
+	public DatabaseTree loadTablesForDatabase(String url, String username, String password, String driver, String dbName) throws MetaDataAccessException, SQLException {
+        BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setUrl(url);
+        dataSource.setPassword(password);
+        dataSource.setUsername(username);
+        dataSource.setDriverClassName(driver);
+        Connection con = dataSource.getConnection();
 		DatabaseTree tree = new DatabaseTree(dbName, DatabaseType.SQL, dataSource);
 
-        ResultSet allTables = (ResultSet) JdbcUtils.extractDatabaseMetaData(
-				dataSource,
-				dbmd -> {
-					ResultSet tables = dbmd.getTables(null, null, "Version", new String[] {"TABLE"});
-					return tables;
-				});
 
-
+        DatabaseMetaData dbMeta = con.getMetaData();
+        ResultSet allTables = dbMeta.getTables(null, null, null, null );
         //Load all tables
         List<DatabaseTable> tables = new LinkedList<>();
-        while(allTables.next()){
-            String tableName = allTables.getString("TABLE");
+        while (allTables.next()) {
+            String tableName = allTables.getString("TABLE_NAME");
 
             DatabaseTable dbTable = new DatabaseTable(tableName);
 
             List<DatabaseColumn> dbColumns = new LinkedList<>();
-            ResultSet allColumns = (ResultSet) JdbcUtils.extractDatabaseMetaData(
-                    dataSource,
-                    dbmd -> {
-                        ResultSet columns = dbmd.getColumns(null, null, tableName, null);
-                        return columns;
-                    });
+            ResultSet allColumns = dbMeta.getColumns(null, null, tableName, null);
 
             //Load all columns
-            while(allColumns.next()){
+            while (allColumns.next()) {
                 String name = allColumns.getString("COLUMN_NAME");
                 String type = allColumns.getString("TYPE_NAME");
                 int size = allColumns.getInt("COLUMN_SIZE");
+
+                //TODO additional column labeling
+            /*String columnName = columns.getString("COLUMN_NAME");
+            String datatype = columns.getString("DATA_TYPE");
+            String columnsize = columns.getString("COLUMN_SIZE");
+            String decimaldigits = columns.getString("DECIMAL_DIGITS");
+            String isNullable = columns.getString("IS_NULLABLE");
+            String is_autoIncrment = columns.getString("IS_AUTOINCREMENT");*/
 
                 DatabaseColumn dbColumn = new DatabaseColumn(name, type);
                 dbColumns.add(dbColumn);
@@ -65,27 +64,26 @@ public class SqlSchemaReader {
             tables.add(dbTable);
         }
 
+
         tree.setTables(tables);
+
         return tree;
 	}
 
     /**
-     * Load schema defined foreign key associations
+     * Load schema defined foreign key associations and attach them to the database tree.
      *
      * @param tree
      * @return
      * @throws SQLException
-     * @throws InvalidArgumentException
      * @throws MetaDataAccessException
      */
-    public List<Association> getFKeyAssociations(DatabaseTree tree) throws SQLException, InvalidArgumentException, MetaDataAccessException {
+    public void getFKeyAssociations(DatabaseTree tree) throws SQLException, MetaDataAccessException, DatabaseException {
 	    if(tree.getDatabaseFormat() != DatabaseType.SQL){
-	        throw new InvalidArgumentException(new String[]{"Cannot get foreign keys from non-SQL database"});
+	        throw new DatabaseException("Cannot get foreign keys from non-SQL database");
         }
 	    DataSource dataSource = (DataSource)tree.getDataSource();
 
-	    Map<String, Association> mappedAssociations = new HashMap<>();
-	    List<Association> associations = new LinkedList<Association>();
 	    for(DatabaseTable table : tree.getTables()) {
             ResultSet allKeys = (ResultSet) JdbcUtils.extractDatabaseMetaData(
                     dataSource,
@@ -94,31 +92,29 @@ public class SqlSchemaReader {
                         return tables;
                     });
 
+            List<Relationship> tableRelationships = new LinkedList<Relationship>();
             while (allKeys.next()) {
-                String tableTarget = allKeys.getString(3); //Table name containing pk
-                String targetPk = allKeys.getString(4); //Pk name
-                String localFk = allKeys.getString(8);//Column name of fk
+                String tableTarget = allKeys.getString("FKTABLE_NAME"); //Table name containing pk
+                String targetPk = allKeys.getString("FKCOLUMN_NAME"); //Pk name
+                String localFk = allKeys.getString("PKCOLUMN_NAME");//Column name of fk
+                String indexName = allKeys.getString("INDEX_NAME");//Name of fk
 
-                Association association = mappedAssociations.get(tableTarget+"."+targetPk);
-                if(association == null){
-                    association = new Association();
-                    association.setName("Foreign Key "+tableTarget+"."+targetPk);
-                    association.setEntries(new LinkedList<DatabaseEntity>());
-                    association.setIdentical(true);
-                }
+                Relationship association = new Relationship("FK "+table.getName() + " " + tableTarget, indexName);
 
                 DatabaseColumn targetColumn = tree.getColumn(tableTarget, targetPk);
                 DatabaseColumn localColumn = tree.getColumn(table.getLabel(), localFk);
 
-                if(!association.getEntries().contains(targetColumn)){
-                    association.getEntries().add(targetColumn);
-                }
+                if(targetColumn != null && localColumn != null) {
+                    //TODO double check direction of vector. Which is parent and which is target?
+                    association.setStartNodeId(localColumn.getId());
+                    association.setEndNodeId(targetColumn.getId());
 
-                if(!association.getEntries().contains(localColumn)){
-                    association.getEntries().add(localColumn);
+                    tableRelationships.add(association);
                 }
             }
+            if(!tableRelationships.isEmpty()){
+                table.setRelationships(tableRelationships);
+            }
         }
-        return associations;
     }
 }

@@ -12,17 +12,17 @@ public class Association{
 
     boolean identical;
 
-    public List<DatabaseEntity> entries;
+    public List<DatabaseSchemaEntity> entries;
 
     public Association() {
 
     }
 
-    public List<DatabaseEntity> getEntries() {
+    public List<DatabaseSchemaEntity> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<DatabaseEntity> entries) {
+    public void setEntries(List<DatabaseSchemaEntity> entries) {
         this.entries = entries;
     }
 

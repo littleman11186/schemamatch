@@ -1,9 +1,6 @@
 package org.finra.schemamatch.database;
 
-import org.finra.schemamatch.pattern.DataPattern;
-import org.finra.schemamatch.pattern.LabelLogic;
-
-public class DatabaseColumn extends DatabaseEntity{
+public class DatabaseColumn extends DatabaseSchemaEntity {
 
 	String columnType;
 

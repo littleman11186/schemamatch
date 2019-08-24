@@ -18,7 +18,6 @@ public class DatabaseTree {
 
 	public DatabaseTree(String name, DatabaseType dbType, Object dataSource){
 		this.name = name;
-		this.id = name.hashCode();
 		this.databaseFormat = dbType;
 		this.dataSource = dataSource;
 	}
@@ -91,10 +90,12 @@ public class DatabaseTree {
 	    StringBuilder builder = new StringBuilder();
 	    builder.append("Database: ").append(name).append(System.lineSeparator());
 	    builder.append("   - type: ").append(databaseFormat.toString()).append(System.lineSeparator());
-	    for(DatabaseTable table : tables){
-            builder.append("   - table: ").append(table.getLabel()).append(System.lineSeparator());
-            for(DatabaseColumn column : table.getColumns()){
-                builder.append("      - column: ").append(column.getLabel()).append(System.lineSeparator());
+	    if(tables != null) {
+            for (DatabaseTable table : tables) {
+                builder.append("   - table: ").append(table.getLabel()).append(System.lineSeparator());
+                for (DatabaseColumn column : table.getColumns()) {
+                    builder.append("      - column: ").append(column.getLabel()).append(System.lineSeparator());
+                }
             }
         }
 	    return builder.toString();

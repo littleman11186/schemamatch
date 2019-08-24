@@ -19,9 +19,9 @@ import java.util.Map;
 @Configuration
 public class CoreConfiguration {
     @Bean(name = "credentialService")
-    public CredentialService credentialService(@Value("${esp.credstash.ags}") String credstashAgs,
-                                               @Value("${esp.credstash.sdlc}") String credstashSdlc,
-                                               @Value("${esp.credstash.component}") String credstashComponent,
+    public CredentialService credentialService(@Value("${credstash.ags}") String credstashAgs,
+                                               @Value("${credstash.sdlc}") String credstashSdlc,
+                                               @Value("${credstash.component}") String credstashComponent,
                                                @Value("${dplr.aws.useProxy:false}") boolean useProxy,
                                                @Value("${dplr.useEnv:false}") boolean useEnv,
                                                AWSSessionProvider awsSessionManager) {
