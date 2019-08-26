@@ -15,6 +15,13 @@ import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Metadata reader into database tree structure. Available SQL metadata:
+ *
+ *
+ *
+ */
+
 @Service
 public class SqlSchemaReader {
 
@@ -32,7 +39,9 @@ public class SqlSchemaReader {
 
 
         DatabaseMetaData dbMeta = con.getMetaData();
-        ResultSet allTables = dbMeta.getTables(null, null, null, null );
+
+        String[] TYPES = {"TABLE"};
+        ResultSet allTables = dbMeta.getTables(null, null, "%", TYPES );
         //Load all tables
         List<DatabaseTable> tables = new LinkedList<>();
         while (allTables.next()) {

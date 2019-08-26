@@ -96,8 +96,14 @@ public class DatabaseTree {
                 for (DatabaseColumn column : table.getColumns()) {
                     builder.append("      - column: ").append(column.getLabel()).append(System.lineSeparator());
                 }
+                if(table.getRelationships() != null) {
+                    for (Relationship relationship : table.getRelationships()) {
+                        builder.append("      - key: ").append(relationship.getLabel()).append(System.lineSeparator());
+                    }
+                }
             }
         }
+
 	    return builder.toString();
     }
 }
