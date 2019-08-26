@@ -28,7 +28,7 @@ public class SqlSchemaReader {
 	public SqlSchemaReader() {
 	}
 
-	public DatabaseTree loadTablesForDatabase(String url, String username, String password, String driver, String dbName) throws MetaDataAccessException, SQLException {
+	public DatabaseTree loadTablesForDatabase(String url, String username, String password, String driver, String dbName) throws MetaDataAccessException, SQLException, DatabaseException {
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setUrl(url);
         dataSource.setPassword(password);
@@ -40,7 +40,7 @@ public class SqlSchemaReader {
 
         DatabaseMetaData dbMeta = con.getMetaData();
 
-        String[] TYPES = {"TABLE"};
+        String[] TYPES = {"TABLE", "VIEW"};
         ResultSet allTables = dbMeta.getTables(null, null, "%", TYPES );
         //Load all tables
         List<DatabaseTable> tables = new LinkedList<>();
@@ -76,6 +76,8 @@ public class SqlSchemaReader {
 
         tree.setTables(tables);
 
+        getFKeyAssociations(tree);
+
         return tree;
 	}
 
@@ -94,19 +96,14 @@ public class SqlSchemaReader {
 	    DataSource dataSource = (DataSource)tree.getDataSource();
 
 	    for(DatabaseTable table : tree.getTables()) {
-            ResultSet allKeys = (ResultSet) JdbcUtils.extractDatabaseMetaData(
-                    dataSource,
-                    dbmd -> {
-                        ResultSet tables = dbmd.getImportedKeys(null, null, table.getLabel());
-                        return tables;
-                    });
+            ResultSet allKeys = dataSource.getConnection().getMetaData().getImportedKeys(null, null, table.getLabel());
 
             List<Relationship> tableRelationships = new LinkedList<Relationship>();
             while (allKeys.next()) {
                 String tableTarget = allKeys.getString("FKTABLE_NAME"); //Table name containing pk
                 String targetPk = allKeys.getString("FKCOLUMN_NAME"); //Pk name
                 String localFk = allKeys.getString("PKCOLUMN_NAME");//Column name of fk
-                String indexName = allKeys.getString("INDEX_NAME");//Name of fk
+                String indexName = allKeys.getString("FK_NAME");//Name of fk
 
                 Relationship association = new Relationship("FK "+table.getName() + " " + tableTarget, indexName);
 
