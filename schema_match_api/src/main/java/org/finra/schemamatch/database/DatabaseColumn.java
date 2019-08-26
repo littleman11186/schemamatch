@@ -4,9 +4,12 @@ public class DatabaseColumn extends DatabaseSchemaEntity {
 
 	String columnType;
 
-	public DatabaseColumn(String label, String columnType) {
+	DatabaseTable parentTable;
+
+	public DatabaseColumn(DatabaseTable parent, String label, String columnType) {
 		super(label, DatabaseEntityType.COLUMN);
 		this.columnType = columnType;
+		this.parentTable = parent;
 	}
 
 
@@ -18,5 +21,21 @@ public class DatabaseColumn extends DatabaseSchemaEntity {
 				", type=" + type +
 				", id=" + id +
 				'}';
+	}
+
+	public String getColumnType() {
+		return columnType;
+	}
+
+	public void setColumnType(String columnType) {
+		this.columnType = columnType;
+	}
+
+	public DatabaseTable getParentTable() {
+		return parentTable;
+	}
+
+	public void setParentTable(DatabaseTable parentTable) {
+		this.parentTable = parentTable;
 	}
 }

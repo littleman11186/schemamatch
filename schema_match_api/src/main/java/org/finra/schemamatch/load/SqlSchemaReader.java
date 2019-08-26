@@ -66,7 +66,7 @@ public class SqlSchemaReader {
             String isNullable = columns.getString("IS_NULLABLE");
             String is_autoIncrment = columns.getString("IS_AUTOINCREMENT");*/
 
-                DatabaseColumn dbColumn = new DatabaseColumn(name, type);
+                DatabaseColumn dbColumn = new DatabaseColumn(dbTable, name, type);
                 dbColumns.add(dbColumn);
             }
             dbTable.setColumns(dbColumns);
@@ -100,9 +100,9 @@ public class SqlSchemaReader {
 
             List<Relationship> tableRelationships = new LinkedList<Relationship>();
             while (allKeys.next()) {
-                String tableTarget = allKeys.getString("FKTABLE_NAME"); //Table name containing pk
-                String targetPk = allKeys.getString("FKCOLUMN_NAME"); //Pk name
-                String localFk = allKeys.getString("PKCOLUMN_NAME");//Column name of fk
+                String tableTarget = allKeys.getString("PKTABLE_NAME"); //Table name containing pk
+                String targetPk = allKeys.getString("PKCOLUMN_NAME"); //Pk name
+                String localFk = allKeys.getString("FKCOLUMN_NAME");//Column name of fk
                 String indexName = allKeys.getString("FK_NAME");//Name of fk
 
                 Relationship association = new Relationship("FK "+table.getName() + " " + tableTarget, indexName);
@@ -111,9 +111,8 @@ public class SqlSchemaReader {
                 DatabaseColumn localColumn = tree.getColumn(table.getLabel(), localFk);
 
                 if(targetColumn != null && localColumn != null) {
-                    //TODO double check direction of vector. Which is parent and which is target?
-                    association.setStartNodeId(localColumn.getId());
-                    association.setEndNodeId(targetColumn.getId());
+                    association.setStartNode(targetColumn); //external table is the owner
+                    association.setEndNode(localColumn); //local table is the target
 
                     tableRelationships.add(association);
                 }

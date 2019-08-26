@@ -98,7 +98,7 @@ public class DatabaseTree {
                 }
                 if(table.getRelationships() != null) {
                     for (Relationship relationship : table.getRelationships()) {
-                        builder.append("      - key: ").append(relationship.getLabel()).append(System.lineSeparator());
+                        builder.append("      - key: ").append(relationship.getStartNode().getParentTable().getLabel()).append(System.lineSeparator());
                     }
                 }
             }

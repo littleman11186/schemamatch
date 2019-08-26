@@ -18,7 +18,9 @@ public class Relationship extends DatabaseSchemaEntity implements Serializable {
 		super(name, label, DatabaseEntityType.FOREIGN_KEY);
 	}
 
+	protected DatabaseColumn startNode;
 	protected String startNodeId;
+	protected DatabaseColumn endNode;
 	protected String endNodeId;
 
 	public String getStartNodeId() {
@@ -35,5 +37,21 @@ public class Relationship extends DatabaseSchemaEntity implements Serializable {
 
 	public void setEndNodeId(String endNodeId) {
 		this.endNodeId = endNodeId;
+	}
+
+	public DatabaseColumn getStartNode() {
+		return startNode;
+	}
+
+	public void setStartNode(DatabaseColumn startNode) {
+		this.startNode = startNode;
+	}
+
+	public DatabaseColumn getEndNode() {
+		return endNode;
+	}
+
+	public void setEndNode(DatabaseColumn endNode) {
+		this.endNode = endNode;
 	}
 }
